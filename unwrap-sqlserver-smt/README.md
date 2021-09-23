@@ -62,7 +62,7 @@ export DEBEZIUM_VERSION=1.7
 docker-compose up
 
 # Start PostgreSQL connector
-curl -i -X POST -H "Accept:application/json" -H  "Content-Type:application/json" http://localhost:8083/connectors/ -d @jdbc-sink.json
+curl -i -X POST -H "Accept:application/json" -H  "Content-Type:application/json" http://localhost:8083/connectors/ -d @sink.json
 
 # Start SQL Server connector
 curl -i -X POST -H "Accept:application/json" -H  "Content-Type:application/json" http://localhost:8083/connectors/ -d @source.json
@@ -159,7 +159,7 @@ docker-compose exec postgres bash -c 'psql -U $POSTGRES_USER $POSTGRES_DB -c "se
 (4 rows)
 ```
 
-As you can see there is no longer a 'Jane Doe' as a customer.
+As you can see there is no longer a 'Jane Roe' as a customer.
 
 End application:
 

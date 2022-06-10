@@ -2,6 +2,7 @@
 
 This example demonstrates how two Debezium change data topics can be joined via Kafka Streams,
 using the new foreign key join feature in Apache Kafka 2.4 ([KIP-213](https://cwiki.apache.org/confluence/display/KAFKA/KIP-213+Support+non-key+joining+in+KTable)).
+It accompanies the blog post [Understanding Non-Key Joins With the Quarkus Extension for Kafka Streams](https://debezium.io/blog/2021/03/18/understanding-non-key-joins-with-quarkus-extension-for-kafka-streams/).
 
 The source database contains two tables, `customers` and `addresses`, with a foreign key relationship from the latter to the former,
 i.e. a customer can have multiple addresses.
@@ -26,7 +27,7 @@ $ mvn clean verify -f aggregator/pom.xml
 Setup the necessary environment variables
 
 ```console
-$ export DEBEZIUM_VERSION=1.4
+$ export DEBEZIUM_VERSION=1.8
 $ export QUARKUS_BUILD=jvm
 ```
 
@@ -62,7 +63,7 @@ Examine the joined events using _kafkacat_:
 ```console
 $ docker run --tty --rm \
     --network kstreams-fk-join-network \
-    debezium/tooling:1.1 \
+    quay.io/debezium/tooling:1.2 \
     kafkacat -b kafka:9092 -C -o beginning -q \
     -t customers-with-addresses | jq .
 ```
@@ -74,7 +75,7 @@ Getting a session in the Postgres DB of the "order" service:
 ```console
 $ docker run --tty --rm -i \
         --network kstreams-fk-join-network \
-        debezium/tooling:1.1 \
+        quay.io/debezium/tooling:1.2 \
         bash -c 'pgcli postgresql://postgres:postgres@postgres:5432/postgres'
 ```
 
@@ -92,6 +93,6 @@ For that
 
 * add `- ADVERTISED_HOST_NAME=<YOUR HOST IP>` to the `environment` section of the "kafka" service in the Docker Compose file.
 * run the Docker Compose set-up without the _aggregator_ service, e.g.: `docker-compose up --scale aggregator=0`
-* run the *aggregator* app in dev mode, specifying your IP as advertised host, e.g.: `mvn compile quarkus:dev -Dkafka.bootstrap.servers=192.168.1.8:9092 -Dquarkus.http.port=8079`
+* run the *aggregator* app in dev mode, specifying your IP as advertised host, e.g.: `mvn compile quarkus:dev -Dkafka.bootstrap.servers=<YOUR HOST IP>:9092 -Dquarkus.http.port=8079`
 
 Any code changes will immediately picked up after reloading the application in the web browser.

@@ -13,7 +13,7 @@ The Debezium UI is only available with Debezium version 1.5 and above.
 Launch all the required components for the topology as defined in [tutorial example](../tutorial)
 
 ```shell
-export DEBEZIUM_VERSION=1.7
+export DEBEZIUM_VERSION=1.8
 docker-compose up -d
 
 Creating db-mysql  ... done
@@ -95,7 +95,7 @@ You can examine change events which occur due to database changes
 # Viewing the change events in the kafka container
 docker exec -it kafka bash
 
-./bin/kafka-console-consumer.sh --bootstrap-server $BOOTSTRAP_SERVERS --topic [TOPIC_NAME] --from-beginning
+./bin/kafka-console-consumer.sh --bootstrap-server kafka:9092 --topic [TOPIC_NAME] --from-beginning
 
 ```
 

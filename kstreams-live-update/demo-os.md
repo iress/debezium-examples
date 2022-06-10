@@ -28,7 +28,7 @@ oc cluster up --routing-suffix=`ifconfig eth0 | grep -Eo 'inet (addr:)?([0-9]*\.
 ## Start tooling container
 
 ```
-oc run tooling -it --image=debezium/tooling --restart=Never
+oc run tooling -it --image=quay.io/debezium/tooling:1.2 --restart=Never
 ```
 
 Verify connectors are deployed:
@@ -68,7 +68,7 @@ cat <<'EOF' > register-mysql-source.json
         "database.server.id": "184055",
         "database.server.name": "dbserver1",
         "decimal.handling.mode" : "string",
-        "table.include": "inventory.orders,inventory.categories",
+        "table.include.list": "inventory.orders,inventory.categories",
         "database.history.kafka.bootstrap.servers": "my-cluster-kafka-bootstrap:9092",
         "database.history.kafka.topic": "schema-changes.inventory"
     }
@@ -83,7 +83,7 @@ cat register-mysql-source.json | http POST http://debezium-connect-api:8083/conn
 kafkacat -b my-cluster-kafka-bootstrap -t dbserver1.inventory.categories -C -o beginning | jq ."payload"
 kafkacat -b my-cluster-kafka-bootstrap -t dbserver1.inventory.orders -C -o end | jq ."payload"
 kafkacat -b my-cluster-kafka-bootstrap -t sales_per_category -C -o beginning -K ' --- '
-oc exec -it my-cluster-kafka-0 -- bin/kafka-topics.sh --zookeeper localhost:2181 --list
+oc exec -it my-cluster-kafka-0 -- bin/kafka-topics.sh --bootstrap-server localhost:9092 --list
 ```
 
 ## Bonus: Push Data to Elasticsearch
@@ -165,7 +165,7 @@ oc exec -c zookeeper -it my-cluster-zookeeper-0 -- /opt/kafka/bin/kafka-console-
 List topics:
 
 ```
-oc exec -it my-cluster-kafka-0 -- bin/kafka-topics.sh --zookeeper localhost:2181 --list
+oc exec -it my-cluster-kafka-0 -- bin/kafka-topics.sh --bootstrap-server localhost:9092 --list
 ```
 
 # Clean-Up
@@ -211,7 +211,7 @@ oc exec -c kafka -i my-cluster-kafka-0 -- curl -s -w "\n" -X POST \
         "database.server.id": "184055",
         "database.server.name": "dbserver1",
         "decimal.handling.mode" : "string",
-        "table.include": "inventory.orders,inventory.categories",
+        "table.include.list": "inventory.orders,inventory.categories",
         "database.history.kafka.bootstrap.servers": "my-cluster-kafka-bootstrap:9092",
         "database.history.kafka.topic": "schema-changes.inventory"
     }

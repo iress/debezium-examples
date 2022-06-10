@@ -22,7 +22,7 @@ $ mvn clean verify
 ```
 
 ```console
-$ export DEBEZIUM_VERSION=1.6
+$ export DEBEZIUM_VERSION=1.8
 $ docker-compose up --build
 ```
 
@@ -32,6 +32,37 @@ Register the connectors for the different services:
 $ http PUT http://localhost:8083/connectors/order-outbox-connector/config < register-order-connector.json
 $ http PUT http://localhost:8083/connectors/payment-outbox-connector/config < register-payment-connector.json
 $ http PUT http://localhost:8083/connectors/credit-outbox-connector/config < register-credit-connector.json
+```
+
+As an example, here is the connector for capturing outbox events from the order service's database:
+
+```json5
+{
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "tasks.max": "1",
+    
+    /* database coordinates */
+    "database.hostname": "order-db",
+    "database.port": "5432",
+    "database.user": "orderuser",
+    "database.password": "orderpw",
+    "database.dbname" : "orderdb",
+    "database.server.name": "dbserver1",
+    
+    /* only capture changes from the outboxevent table */
+    "schema.include.list": "purchaseorder",
+    "table.include.list" : "purchaseorder.outboxevent",
+    "tombstones.on.delete" : "false",
+    "poll.interval.ms": "100",
+
+    "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+    "value.converter": "org.apache.kafka.connect.storage.StringConverter",
+    
+    /* apply the outbox event routing SMT */
+    "transforms" : "saga",
+    "transforms.saga.type" : "io.debezium.transforms.outbox.EventRouter",
+    "transforms.saga.route.topic.replacement" : "${routedByValue}.request"
+}
 ```
 
 Place an order:
@@ -54,7 +85,7 @@ Examine the emitted messages for `credit-approval` and `payment` in Apache Kafka
 ```console
 $ docker run --tty --rm \
     --network saga-network \
-    debezium/tooling:1.1 \
+    quay.io/debezium/tooling:1.2 \
     kafkacat -b kafka:9092 -C -o beginning -q \
     -f "{\"key\":%k, \"headers\":\"%h\"}\n%s\n" \
     -t credit-approval.request
@@ -66,7 +97,7 @@ $ docker run --tty --rm \
 ```console
 $ docker run --tty --rm \
     --network saga-network \
-    debezium/tooling:1.1 \
+    quay.io/debezium/tooling:1.2 \
     kafkacat -b kafka:9092 -C -o beginning -q \
     -f "{\"key\":%k, \"headers\":\"%h\"}\n%s\n" \
     -t payment.request
@@ -80,7 +111,7 @@ Examine the saga state in the order service's database:
 ```console
 $ docker run --tty --rm -i \
         --network saga-network \
-        debezium/tooling:1.1 \
+        quay.io/debezium/tooling:1.2 \
         bash -c 'pgcli postgresql://orderuser:orderpw@order-db:5432/orderdb'
 
 select * from purchaseorder.sagastate;
@@ -146,7 +177,7 @@ $ mvn compile quarkus:dev -f customer-service/pom.xml
 Listing all topics:
 
 ```console
-$ docker-compose exec kafka /kafka/bin/kafka-topics.sh --zookeeper zookeeper:2181 --list
+$ docker-compose exec kafka /kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --list
 ```
 
 Register connector for logging the saga state:
@@ -160,7 +191,7 @@ Examining saga state log:
 ```console
 $ docker run --tty --rm \
     --network saga-network \
-    debezium/tooling:1.1 \
+    quay.io/debezium/tooling:1.2 \
     kafkacat -b kafka:9092 -C -o beginning -q \
     -f "{\"key\":%k, \"headers\":\"%h\"}\n%s\n" \
     -t dbserver4.purchaseorder.sagastate

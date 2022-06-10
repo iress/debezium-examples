@@ -23,7 +23,7 @@ $ mvn clean verify
 Setup the necessary environment variables:
 
 ```console
-$ export DEBEZIUM_VERSION=1.4
+$ export DEBEZIUM_VERSION=1.8
 ```
 
 The `DEBEZIUM_VERSION` specifies which version of Debezium artifacts should be used.
@@ -40,7 +40,7 @@ This executes all configurations set forth by the `docker-compose.yaml` file.
 
 ## Configure the Debezium connector
 
-Register the connector that to stream outbox changes from the order service: 
+Register the connector that to stream changes from the order service:
 
 ```console
 $ http PUT http://localhost:8083/connectors/order-connector/config < register-postgres.json
@@ -69,7 +69,7 @@ Examine the events produced by the service using _kafkacat_:
 ```console
 $ docker run --tty --rm \
     --network distributed-caching-network \
-    debezium/tooling:1.1 \
+    quay.io/debezium/tooling:1.2 \
     kafkacat -b kafka:9092 -C -o beginning -q \
     -t dbserver1.inventory.purchaseorder | jq .
 ```
@@ -121,12 +121,12 @@ Using the console, check the data available in every cluster.
 
 When working on the Quarkus services, it's better to use the dev mode locally instead of rebuilding the container images all the time.
 In order to do so, in the _docker-compose.yml_ file, set the `ADVERTISED_HOST_NAME` variable of the `kafka` service to the IP of your host machine.
-Otherwise, the consuming application (_cache-update-service_) will not be able to connect Kafka.
+Otherwise, the consuming application (_cache-update-service_) will not be able to connect to Kafka.
 
 Start all components besides the two services:
 
 ```console
-$ docker-compose up --scale order-service=0 --scale cache-update-service=0
+$ docker-compose up --scale order-service-nyc=0 --scale order-service-lon=0 --scale cache-update-service=0
 ```
 
 Then start the two services in dev mode:
@@ -146,7 +146,7 @@ Getting a session in the Postgres DB of the "order" service:
 ```console
 $ docker run --tty --rm -i \
     --network distributed-caching-network \
-    debezium/tooling:1.1 \
+    quay.io/debezium/tooling:1.2 \
     bash -c 'pgcli postgresql://postgresuser:postgrespw@order-db:5432/orderdb'
 ```
 
@@ -168,7 +168,7 @@ Alternatively, you can access pgAdmin on http://localhost:5050.
 List all Kafka topics:
 
 ```console
-$ docker-compose exec kafka /kafka/bin/kafka-topics.sh --zookeeper zookeeper:2181 --list
+$ docker-compose exec kafka /kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --list
 ```
 
 Get the status of the CDC connector:

@@ -1,6 +1,6 @@
 # Debezium Tutorial
 
-This demo automatically deploys the topology of services as defined in the [Debezium Tutorial](https://debezium.io/docs/tutorial/).
+This demo automatically deploys the topology of services as defined in the [Debezium Tutorial](https://debezium.io/documentation/reference/stable/tutorial.html).
 
 - [Debezium Tutorial](#debezium-tutorial)
   * [Using MySQL](#using-mysql)
@@ -25,8 +25,8 @@ This demo automatically deploys the topology of services as defined in the [Debe
 ## Using MySQL
 
 ```shell
-# Start the topology as defined in https://debezium.io/docs/tutorial/
-export DEBEZIUM_VERSION=1.6
+# Start the topology as defined in https://debezium.io/documentation/reference/stable/tutorial.html
+export DEBEZIUM_VERSION=1.9
 docker-compose -f docker-compose-mysql.yaml up
 
 # Start MySQL connector
@@ -48,7 +48,7 @@ docker-compose -f docker-compose-mysql.yaml down
 
 ### Using MySQL and the Avro message format
 
-To use [Avro-style messages](https://debezium.io/docs/configuration/avro/) instead of JSON,
+To use [Avro-style messages](https://debezium.io/documentation/reference/stable/configuration/avro.html) instead of JSON,
 Avro can be configured one of two ways, 
 in the Kafka Connect worker configuration or in the connector configuration.
 Using Avro in conjunction with the schema registry allows for much more compact messages.
@@ -187,7 +187,7 @@ To consume the Avro messages It is possible to use `kafkacat` tool:
 ```shell
 docker run --rm --tty \
   --network tutorial_default \
-  debezium/tooling \
+  quay.io/debezium/tooling:1.2 \
   kafkacat -b kafka:9092 -C -o beginning -q -s value=avro -r http://apicurio:8080/apis/ccompat/v6 \
   -t dbserver1.inventory.customers | jq .
 ```
@@ -195,8 +195,8 @@ docker run --rm --tty \
 ## Using Postgres
 
 ```shell
-# Start the topology as defined in https://debezium.io/docs/tutorial/
-export DEBEZIUM_VERSION=1.6
+# Start the topology as defined in https://debezium.io/documentation/reference/stable/tutorial.html
+export DEBEZIUM_VERSION=1.9
 docker-compose -f docker-compose-postgres.yaml up
 
 # Start Postgres connector
@@ -219,8 +219,8 @@ docker-compose -f docker-compose-postgres.yaml down
 ## Using MongoDB
 
 ```shell
-# Start the topology as defined in https://debezium.io/docs/tutorial/
-export DEBEZIUM_VERSION=1.6
+# Start the topology as defined in https://debezium.io/documentation/reference/stable/tutorial.html
+export DEBEZIUM_VERSION=1.9
 docker-compose -f docker-compose-mongodb.yaml up
 
 # Initialize MongoDB replica set and insert some test data
@@ -253,12 +253,9 @@ This assumes Oracle is running on localhost
 (or is reachable there, e.g. by means of running it within a VM or Docker container with appropriate port configurations)
 and set up with the configuration, users and grants described in the Debezium [Vagrant set-up](https://github.com/debezium/oracle-vagrant-box).
 
-Also you must download the [Oracle instant client for Linux](http://www.oracle.com/technetwork/topics/linuxx86-64soft-092277.html)
-and put it under the directory _debezium-with-oracle-jdbc/oracle_instantclient_.
-
 ```shell
-# Start the topology as defined in https://debezium.io/docs/tutorial/
-export DEBEZIUM_VERSION=1.6
+# Start the topology as defined in https://debezium.io/documentation/reference/stable/tutorial.html
+export DEBEZIUM_VERSION=1.9
 docker-compose -f docker-compose-oracle.yaml up --build
 
 # Insert test data
@@ -294,45 +291,15 @@ docker exec -i dbz_oracle sqlplus debezium/dbz@//localhost:1521/ORCLPDB1
 docker-compose -f docker-compose-oracle.yaml down
 ```
 
-### XStreams
-
-Instead of LogMiner, the connector can use the XStreams API, which requires a license for the Golden Gate product
-(which itself is not required be installed, though).
-The connector option `database.connection.adapter` must be set to `xstream` to do so.
-
-Adjust the host name of the database server and the name of the XStream outbound server in `register-oracle-xstreams.json` as per your environment.
-Then register the Debezium Oracle connector:
-
-```shell
-# Start Oracle connector
-curl -i -X POST -H "Accept:application/json" -H  "Content-Type:application/json" http://localhost:8083/connectors/ -d @register-oracle-xstreams.json
-
-# Create a test change record
-echo "INSERT INTO customers VALUES (NULL, 'John', 'Doe', 'john.doe@example.com');" | docker exec -i dbz_oracle sqlplus debezium/dbz@//localhost:1521/ORCLPDB1
-
-# Consume messages from a Debezium topic
-docker-compose -f docker-compose-oracle.yaml exec kafka /kafka/bin/kafka-console-consumer.sh \
-    --bootstrap-server kafka:9092 \
-    --from-beginning \
-    --property print.key=true \
-    --topic server1.DEBEZIUM.CUSTOMERS
-
-# Modify other records in the database via Oracle client
-docker exec -i dbz_oracle sqlplus debezium/dbz@//localhost:1521/ORCLPDB1
-
-# Shut down the cluster
-docker-compose -f docker-compose-oracle.yaml down
-```
-
 ## Using SQL Server
 
 ```shell
-# Start the topology as defined in https://debezium.io/docs/tutorial/
-export DEBEZIUM_VERSION=1.6
+# Start the topology as defined in https://debezium.io/documentation/reference/stable/tutorial.html
+export DEBEZIUM_VERSION=1.9
 docker-compose -f docker-compose-sqlserver.yaml up
 
 # Initialize database and insert test data
-cat debezium-sqlserver-init/inventory.sql | docker exec -i tutorial_sqlserver_1 bash -c '/opt/mssql-tools/bin/sqlcmd -U sa -P $SA_PASSWORD'
+cat debezium-sqlserver-init/inventory.sql | docker-compose -f docker-compose-sqlserver.yaml exec -T sqlserver bash -c '/opt/mssql-tools/bin/sqlcmd -U sa -P $SA_PASSWORD'
 
 # Start SQL Server connector
 curl -i -X POST -H "Accept:application/json" -H  "Content-Type:application/json" http://localhost:8083/connectors/ -d @register-sqlserver.json
@@ -354,8 +321,8 @@ docker-compose -f docker-compose-sqlserver.yaml down
 ## Using Db2
 
 ```shell
-# Start the topology as defined in https://debezium.io/docs/tutorial/
-export DEBEZIUM_VERSION=1.6
+# Start the topology as defined in https://debezium.io/documentation/reference/stable/tutorial.html
+export DEBEZIUM_VERSION=1.9
 
 docker-compose -f docker-compose-db2.yaml up --build
 
@@ -380,8 +347,8 @@ docker-compose -f docker-compose-db2.yaml down
 ## Using Cassandra
 
 ```shell 
-# Start the topology as defined in https://debezium.io/docs/tutorial/
-export DEBEZIUM_VERSION=1.6
+# Start the topology as defined in https://debezium.io/documentation/reference/stable/tutorial.html
+export DEBEZIUM_VERSION=1.9
 
 docker-compose -f docker-compose-cassandra.yaml up --build
 
@@ -408,8 +375,8 @@ docker-compose -f docker-compose-cassandra.yaml down
 ## Using Vitess
 
 ```shell 
-# Start the topology as defined in https://debezium.io/docs/tutorial/
-export DEBEZIUM_VERSION=1.6
+# Start the topology as defined in https://debezium.io/documentation/reference/stable/tutorial.html
+export DEBEZIUM_VERSION=1.9
 
 docker-compose -f docker-compose-vitess.yaml up --build
 
@@ -469,8 +436,8 @@ Kafka Connect allows [externalization](https://cwiki.apache.org/confluence/displ
 The configuration is done at both worker and connector level.
 
 ```shell
-# Start the topology as defined in https://debezium.io/docs/tutorial/
-export DEBEZIUM_VERSION=1.6
+# Start the topology as defined in https://debezium.io/documentation/reference/stable/tutorial.html
+export DEBEZIUM_VERSION=1.9
 docker-compose -f docker-compose-mysql-ext-secrets.yml up
 
 # Start MySQL connector
@@ -488,8 +455,8 @@ docker-compose -f docker-compose-mysql-ext-secrets.yml down
 Since Apache Kafka 2.8 and Debezium 1.7, there is **experimental** support for running Kafka without ZooKeeper ("KRaft" mode).
 
 ```shell
-# Start the topology as defined in https://debezium.io/docs/tutorial/
-export DEBEZIUM_VERSION=1.7
+# Start the topology as defined in https://debezium.io/documentation/reference/stable/tutorial.html
+export DEBEZIUM_VERSION=1.9
 docker-compose -f docker-compose-zookeeperless-kafka-combined.yaml up
 
 # Start Postgres connector

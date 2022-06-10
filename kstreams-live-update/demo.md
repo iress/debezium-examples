@@ -18,19 +18,19 @@ cat mysql-source.json | http POST http://localhost:8083/connectors/
 
 docker run --tty \
   --network kstreams-live-update_default \
-  debezium/tooling \
+  quay.io/debezium/tooling:1.2 \
   kafkacat -b kafka:9092 -C -o end -q \
   -t dbserver1.inventory.orders | jq .payload
 
 docker run --tty \
   --network kstreams-live-update_default \
-  debezium/tooling \
+  quay.io/debezium/tooling:1.2 \
   kafkacat -b kafka:9092 -C -o beginning -q \
   -t dbserver1.inventory.categories | jq .payload
 
 docker run --tty \
   --network kstreams-live-update_default \
-  debezium/tooling \
+  quay.io/debezium/tooling:1.2 \
   kafkacat -b kafka:9092 -C -o beginning \
   -t sales_per_category -K " --- "
 
@@ -44,4 +44,4 @@ http "http://localhost:9200/orders/_search?pretty"
 
 # Misc.
 
-docker-compose  -f docker-compose-mysql exec kafka /kafka/bin/kafka-topics.sh --zookeeper zookeeper:2181 --list
+docker-compose  -f docker-compose-mysql exec kafka /kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --list

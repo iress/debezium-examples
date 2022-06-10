@@ -5,7 +5,7 @@ This demo automatically deploys the topology of services as defined in the [Debe
 ## Preparations
 
 ```shell
-export DEBEZIUM_VERSION=1.4
+export DEBEZIUM_VERSION=1.8
 mvn clean install -f avro-data-extractor/pom.xml
 docker-compose up --build
 ```
@@ -19,7 +19,7 @@ curl -i -X PUT -H "Accept:application/json" -H  "Content-Type:application/json" 
 # Consume messages from the Debezium topic
 docker run --rm --tty \
   --network cloudevents-network \
-  debezium/tooling \
+  quay.io/debezium/tooling:1.2 \
   kafkacat -b kafka:9092 -C -o beginning -q \
   -t dbserver1.inventory.customers | jq .
 
@@ -38,7 +38,7 @@ curl -i -X PUT -H "Accept:application/json" -H  "Content-Type:application/json" 
 # Consume messages from the Debezium topic
 docker run --rm --tty \
   --network cloudevents-network \
-  debezium/tooling \
+  quay.io/debezium/tooling:1.2 \
   kafkacat -b kafka:9092 -C -o beginning -q \
   -t dbserver2.inventory.customers | jq .
 ```
@@ -50,7 +50,7 @@ Examine its contents like so:
 ```shell
 docker run --rm --tty \
   --network cloudevents-network \
-  debezium/tooling \
+  quay.io/debezium/tooling:1.2 \
   kafkacat -b kafka:9092 -C -o beginning -q -s value=avro -r http://schema-registry:8081 \
   -t customers2 | jq .
 ```
@@ -64,7 +64,7 @@ curl -i -X PUT -H "Accept:application/json" -H  "Content-Type:application/json" 
 # Consume messages from the Debezium topic:
 docker run --rm --tty \
   --network cloudevents-network \
-  debezium/tooling \
+  quay.io/debezium/tooling:1.2 \
   kafkacat -b kafka:9092 -C -o beginning -q -s value=avro -r http://schema-registry:8081 \
   -t dbserver3.inventory.customers | jq .
 ```
@@ -75,7 +75,7 @@ The same stream processing application writes out that data to the `customers3` 
 ```shell
 docker run --rm --tty \
   --network cloudevents-network \
-  debezium/tooling \
+  quay.io/debezium/tooling:1.2 \
   kafkacat -b kafka:9092 -C -o beginning -q -s value=avro -r http://schema-registry:8081 \
   -t customers2 | jq .
 ```
@@ -108,5 +108,5 @@ You can then establish a remote debugging session from your IDE on localhost:500
 Listing all topics:
 
 ```shell
-docker-compose exec kafka /kafka/bin/kafka-topics.sh --zookeeper zookeeper:2181 --list
+docker-compose exec kafka /kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --list
 ```

@@ -1,6 +1,6 @@
-# Debezium Unwrap SQL Server SMT Demo
+# Debezium Unwrap SQL Server SMT Single Topic Demo
 
-This setup is going to demonstrate how to receive events from a SQL Server database and stream them down to a PostgreSQL database using the [Debezium Event Flattening SMT](https://debezium.io/docs/configuration/event-flattening/).
+This setup is going to demonstrate how to receive events from a SQL Server database and stream them down to a PostgreSQL database using the [Debezium Event Flattening SMT](https://debezium.io/docs/configuration/event-flattening/). It is also going to demonstrate how to use a single topic to stream the data (rather than one topic per table) using the [Debezium Topic Routing SMT](https://debezium.io/docs/configuration/topic-routing/).
 
 ## Table of Contents
 
@@ -51,6 +51,11 @@ We are using Docker Compose to deploy following components
   * Kafka Broker
   * Kafka Connect with [Debezium](https://debezium.io/) and  [JDBC](https://github.com/confluentinc/kafka-connect-jdbc) Connector
 * PostgreSQL
+
+To allow streaming via a single topic:
+
+* The source connector uses the [ByLogicalTableRouter](https://debezium.io/docs/configuration/topic-routing/) transform to change the topic name from `dbserver1.dbo.{table_name}` to `inventory`, and to insert a `__dbz__physicalTableIdentifier` field into the key of each record. This key field allows the sink connector to identify which table each record is from, and ensures keys for records from different tables are unique throughout the topic.
+* The sink connector writes to tables based on the topic name. The [ExtractTopic](https://docs.confluent.io/platform/current/connect/transforms/extracttopic.html) transform makes the connector use the table name in key field `__dbz__physicalTableIdentifier` as the topic name instead of `inventory`. The [ReplaceField](https://docs.confluent.io/platform/current/connect/transforms/replacefield.html) transform drops the `__dbz__physicalTableIdentifier` field from the key to prevent it being written to the tables.
 
 ### Usage
 

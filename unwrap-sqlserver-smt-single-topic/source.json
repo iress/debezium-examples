@@ -1,0 +1,21 @@
+{
+    "name": "inventory-connector",
+    "config": {
+        "connector.class": "io.debezium.connector.sqlserver.SqlServerConnector",
+        "tasks.max": "1",
+        "database.hostname": "sqlserver",
+        "database.port": "1433",
+        "database.user": "sa",
+        "database.password": "Password!",
+        "database.dbname": "inventory",
+        "database.server.name": "dbserver1",
+        "database.history.kafka.bootstrap.servers": "kafka:9092",
+        "database.history.kafka.topic": "schema-changes.inventory",
+        "transforms": "route",
+        "transforms.route.type": "io.debezium.transforms.ByLogicalTableRouter",
+        "transforms.route.topic.regex": "([^.]+)\\.([^.]+)\\.([^.]+)",
+        "transforms.route.topic.replacement": "inventory",
+        "transforms.route.key.field.regex": "([^.]+)\\.([^.]+)\\.([^.]+)",
+        "transforms.route.key.field.replacement": "$3"
+    }
+}

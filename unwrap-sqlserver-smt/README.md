@@ -58,7 +58,7 @@ How to run:
 
 ```shell
 # Start the application
-export DEBEZIUM_VERSION=1.7
+export DEBEZIUM_VERSION=1.8
 docker-compose up
 
 # Start PostgreSQL connector
